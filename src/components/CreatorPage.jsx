@@ -96,7 +96,19 @@ export default function CreatorPage() {
   const onDrop = e => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files) }
   const updateCaption = (id, val) => setPhotos(p => p.map(ph => ph.id === id ? { ...ph, caption: val } : ph))
   const removePhoto = id => setPhotos(p => p.filter(ph => ph.id !== id))
+  const movePhoto = (id, dir) => setPhotos(p => {
+    const idx = p.findIndex(ph => ph.id === id)
+    if (idx < 0) return p
+    const newIdx = idx + dir
+    if (newIdx < 0 || newIdx >= p.length) return p
+    const copy = [...p]
+    ;[copy[idx], copy[newIdx]] = [copy[newIdx], copy[idx]]
+    return copy
+  })
   const toggle = key => setOpenSection(prev => prev === key ? null : key)
+
+  const removedDemos = DEMO_PHOTOS.filter(d => !photos.some(p => p.id === d.id))
+  const addDemoPhoto = demo => setPhotos(p => [...p, { ...demo }])
 
   const {
     name, setName, greeting, setGreeting, subMessage, setSubMessage,
@@ -179,27 +191,59 @@ export default function CreatorPage() {
               </div>
             )}
 
-            {/* Photo list (removable) */}
+            {/* Photo list (reorderable + removable) */}
             {photos.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-1">
-                {photos.map(ph => (
-                  <div key={ph.id} className="relative group">
+              <div className="flex flex-col gap-1.5 mt-1">
+                {photos.map((ph, idx) => (
+                  <div key={ph.id} className="flex items-center gap-2 group rounded-lg py-1 px-2"
+                    style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)" }}>
                     {ph.type === "video" ? (
-                      <video src={ph.src} className="w-16 h-16 object-cover rounded-lg" muted
+                      <video src={ph.src} className="w-12 h-12 object-cover rounded-md shrink-0" muted
                         style={{ border: `2px solid ${theme.accent}33` }} />
                     ) : (
-                      <img src={ph.src} alt="" className="w-16 h-16 object-cover rounded-lg"
+                      <img src={ph.src} alt="" className="w-12 h-12 object-cover rounded-md shrink-0"
                         style={{ border: `2px solid ${theme.accent}33` }} />
                     )}
                     {ph.type === "video" && (
-                      <span className="absolute bottom-0.5 left-0.5 text-[10px] bg-black/50 text-white px-1 rounded">🎬</span>
+                      <span className="text-[10px] bg-black/50 text-white px-1 rounded">🎬</span>
                     )}
-                    <button onClick={() => removePhoto(ph.id)}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-xs border-none cursor-pointer flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      ✕
-                    </button>
+                    <span className="flex-1 text-xs font-semibold truncate min-w-0"
+                      style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}>
+                      {ph.caption || (ph.sourceType === "demo" ? "Stock photo" : "Uploaded")}
+                    </span>
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      <button onClick={() => movePhoto(ph.id, -1)} disabled={idx === 0}
+                        className="w-6 h-6 rounded flex items-center justify-center border-none cursor-pointer text-xs bg-transparent"
+                        style={{ color: idx === 0 ? (isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)") : theme.accent }}>▲</button>
+                      <button onClick={() => movePhoto(ph.id, 1)} disabled={idx === photos.length - 1}
+                        className="w-6 h-6 rounded flex items-center justify-center border-none cursor-pointer text-xs bg-transparent"
+                        style={{ color: idx === photos.length - 1 ? (isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)") : theme.accent }}>▼</button>
+                      <button onClick={() => removePhoto(ph.id)}
+                        className="w-6 h-6 rounded flex items-center justify-center border-none cursor-pointer text-xs"
+                        style={{ color: "#ef4444", background: "transparent" }}>✕</button>
+                    </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Add back removed stock photos */}
+            {removedDemos.length > 0 && (
+              <div className="mt-2">
+                <div className="text-xs font-bold uppercase tracking-wider mb-1.5"
+                  style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.3)" }}>
+                  Add stock photos
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {removedDemos.map(d => (
+                    <button key={d.id} onClick={() => addDemoPhoto(d)}
+                      className="relative w-12 h-12 rounded-md overflow-hidden cursor-pointer border-none p-0 group/add"
+                      style={{ opacity: 0.6 }}>
+                      <img src={d.src} alt="" className="w-full h-full object-cover" />
+                      <span className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-lg opacity-0 group-hover/add:opacity-100 transition-opacity">+</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
