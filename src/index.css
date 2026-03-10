@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.3); border-radius: 4px; }
+
+/* Floating emojis */
+@keyframes float0 {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-12px) rotate(5deg); }
+}
+@keyframes float1 {
+  0%, 100% { transform: translateY(0) rotate(8deg); }
+  50% { transform: translateY(-18px) rotate(-8deg); }
+}
+@keyframes float2 {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-8px) rotate(10deg); }
+}
+
+/* Scrolling gallery columns */
+@keyframes scroll-up {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+@keyframes scroll-down {
+  0% { transform: translateY(-50%); }
+  100% { transform: translateY(0); }
+}
+
+.gallery-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gallery-col-up {
+  animation: scroll-up var(--scroll-speed, 30s) linear infinite;
+}
+.gallery-col-down {
+  animation: scroll-down var(--scroll-speed, 35s) linear infinite;
+}
+.gallery-col:hover {
+  animation-play-state: paused;
+}
